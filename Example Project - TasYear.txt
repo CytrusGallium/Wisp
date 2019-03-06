@@ -1,0 +1,218 @@
+program TestGround;
+
+uses
+  Vcl.Forms,
+  Dialogs,
+  WispEntity in 'WispEntity.pas',
+  WispArrayTools in 'WispArrayTools.pas',
+  WispSkin in 'WispSkin.pas',
+  WispDbConnection in 'WispDbConnection.pas',
+  WispQueryTools in 'WispQueryTools.pas',
+  WispUser in 'WispUser.pas',
+  WispAccesManager in 'WispAccesManager.pas',
+  WispLoginDialog in 'WispLoginDialog.pas',
+  WispEditBox in 'WispEditBox.pas',
+  WispDbStructureTools in 'WispDbStructureTools.pas',
+  MainMenu in 'MainMenu.pas' {Form1},
+  WispDistanceTools in 'WispDistanceTools.pas',
+  WispPanelUserInfo in 'WispPanelUserInfo.pas',
+  WispTimeTools in 'WispTimeTools.pas',
+  WispStrTools in 'WispStrTools.pas',
+  WispPanelShortCuts in 'WispPanelShortCuts.pas',
+  WispEntityManager in 'WispEntityManager.pas',
+  WispDatePicker in 'WispDatePicker.pas',
+  WispEntityEditor in 'WispEntityEditor.pas',
+  WispEntityGrid in 'WispEntityGrid.pas',
+  WispViewTools in 'WispViewTools.pas',
+  WispPageControl in 'WispPageControl.pas',
+  WispMainMenuManager in 'WispMainMenuManager.pas',
+  WispLookUpComboBox in 'WispLookUpComboBox.pas',
+  WispStyleManager in 'WispStyleManager.pas',
+  WispStyleConstants in 'WispStyleConstants.pas',
+  WispCheckBox in 'WispCheckBox.pas',
+  WispVisualComponent in 'WispVisualComponent.pas',
+  WispMathTools in 'WispMathTools.pas',
+  WispConsole in 'WispConsole.pas',
+  WispHooks in 'WispHooks.pas',
+  WispButton in 'WispButton.pas',
+  WispTimePicker in 'WispTimePicker.pas',
+  WispPopupMenu in 'WispPopupMenu.pas',
+  WispPanelSearch in 'WispPanelSearch.pas',
+  WispPanelAds in 'WispPanelAds.pas',
+  WispTemplate in 'WispTemplate.pas',
+  WispConstantManager in 'WispConstantManager.pas';
+
+{$R *.res}
+
+begin
+  // Initialize the application
+  Application.Initialize;
+
+  // Initialize the constants controller, required to be initialized first
+  TConstantManager.Create;
+  //Global_Singleton_ConstantManager.CurrentLanguage := 'Arabic';
+  //Global_Singleton_ConstantManager.CurrentLanguage := 'English';
+  Global_Singleton_ConstantManager.CurrentLanguage := 'French';
+
+  // Constants
+  Global_Singleton_ConstantManager.AppTitle := 'TasYear';
+  Global_Singleton_ConstantManager.AppSubTitle := ' - Logiciel de gestion de la maintenance assistée par oridinateur';
+  Global_Singleton_ConstantManager.AppVersion := '0.9.1.1';
+  Global_Singleton_ConstantManager.DbName := 'WispDB';
+
+  // Initialize other controllers
+  TDbConnection.Create;
+  TAccesManager.Create;
+  TEntityManager.Create;
+  TStyleManager.Create;
+
+  // Register bitmaps for icons
+  Global_Singleton_Style.RegisterBitmap('Personnal', 'Skin\Icons\Personnal.bmp');
+  Global_Singleton_Style.RegisterBitmap('Article', 'Skin\Icons\Article.bmp');
+  Global_Singleton_Style.RegisterBitmap('COB', 'Skin\Icons\COB.bmp');
+  Global_Singleton_Style.RegisterBitmap('StockEntry', 'Skin\Icons\Enter.bmp');
+  Global_Singleton_Style.RegisterBitmap('Intervention', 'Skin\Icons\Equipment.bmp');
+  Global_Singleton_Style.RegisterBitmap('StockExit', 'Skin\Icons\Exit.bmp');
+  Global_Singleton_Style.RegisterBitmap('Provider', 'Skin\Icons\Provider.bmp');
+  Global_Singleton_Style.RegisterBitmap('Engine', 'Skin\Icons\Engine.bmp');
+
+  // Entity : Personnel
+  Global_Singleton_EntityManager.RegisterEntity('Personnel', 'Personnel');
+  LastHandledEntity.GlyphName := 'Personnal';
+  LastHandledEntity.AddProperty(TEPText.Create('FAMILY_NAME', 'Nom'));
+  LastHandledEntity.AddProperty(TEPText.Create('FIRST_NAME', 'Prénom'));
+  LastHandledEntity.AddProperty(TEPDate.Create('DATE_OF_BIRTH', 'Date de Naissance'));
+  LastHandledEntity.AddProperty(TEPText.Create('BIRTH_PLACE', 'Lieu de Naissance'));
+  LastHandledEntity.AddProperty(TEPDate.Create('RECRUITING_DATE', 'Date de recrutement'));
+  LastHandledEntity.AddProperty(TEPSubEntity.Create('COB', 'COB', 'COB', 'CODE,NAME', TRUE));
+  LastHandledEntity.AddProperty(TEPSubEntity.Create('FUNCTION', 'Fonction', 'FUNCTION', 'NAME', TRUE));
+  LastHandledEntity.AddProperty(TEPSubEntity.Create('QUALIFICATION', 'Qualification', 'QUALIFICATION', 'NAME', TRUE));
+  LastHandledEntity.AddProperty(TEPText.Create('BLOOD_TYPE', 'Groupe senguin'));
+  LastHandledEntity.AddProperty(TEPText.Create('COUNTRY', 'Nationalité'));
+  LastHandledEntity.AddProperty(TEPText.Create('ADDRES', 'Adresse'));
+
+  // Entity : Equipement
+  Global_Singleton_EntityManager.RegisterEntity('Equipement', 'Equipement');
+  LastHandledEntity.GlyphName := 'Engine';
+  LastHandledEntity.AddProperty(TEPText.Create('CODE', 'Code'));
+  LastHandledEntity.AddProperty(TEPSubEntity.Create('COB', 'COB', 'COB', 'CODE,NAME', TRUE));
+  LastHandledEntity.AddProperty(TEPText.Create('NUMBER', 'N° Moteur'));
+  LastHandledEntity.AddProperty(TEPText.Create('NAME', 'Designation'));
+  LastHandledEntity.AddProperty(TEPText.Create('TYPE', 'Type'));
+  LastHandledEntity.AddProperty(TEPText.Create('BRAND', 'Marque'));
+
+  LastHandledEntity.AddProperty(TEPText.Create('DOCUMENT', 'Document'));
+  TEPText(LastHandledEP).LocalFileSelector := TRUE;
+
+  LastHandledEntity.AddProperty(TEPBoolean.Create('CRUCIAL', 'Cruciale','Oui','Non'));
+  LastHandledEntity.AddProperty(TEPDate.Create('LAST_CHECK_DATE', 'Dernière vérification'));
+
+  LastHandledEntity.AddProperty(TEPText.Create('AUTO_CHECK_PERIOD', 'Préventif (Jours)'));
+  TEPText(LastHandledEP).SuffixLabel := 'Jours';
+
+  LastHandledEntity.AddDecorator(TEDTimeAlert.Create('PREVENTIV_INTERVENTION_ALERT', 'LAST_CHECK_DATE', '', 'AUTO_CHECK_PERIOD', 'D', TRUE));
+
+  // Entity : Intervention
+  Global_Singleton_EntityManager.RegisterEntity('Intervention', 'Intervention');
+  LastHandledEntity.GlyphName := 'Intervention';
+  LastHandledEntity.AddProperty(TEPDate.Create('DATE_INTERVENTION', 'Date de l''intervention'));
+  LastHandledEntity.AddProperty(TEPTime.Create('TIME_INTERVENTION', 'Heure de l''intervention'));
+  LastHandledEntity.AddProperty(TEPSubEntity.Create('EQUIPEMENT', 'Equipement cible', 'Equipement', 'NAME,BRAND,TYPE', TRUE));
+  LastHandledEntity.AddProperty(TEPSubEntity.Create('INTERVENANT', 'Intervenant', 'Personnel', 'FIRST_NAME,FAMILY_NAME', TRUE));
+  LastHandledEntity.AddProperty(TEPSubEntity.Create('TYPE', 'Type d''intervention', 'TypeIntervention', 'DESIGNATION', TRUE));
+  LastHandledEntity.AddProperty(TEPText.Create('REPPORT', 'Rapport', 4));
+  LastHandledEntity.AddProperty(TEPDate.Create('DATE_END_INTERVENTION', 'Date fin de l''intervention'));
+  LastHandledEntity.AddProperty(TEPTime.Create('TIME_END_INTERVENTION', 'Heure fin de l''intervention'));
+  LastHandledEntity.AddProperty(TEPBoolean.Create('VERIFIED', 'Equipement Vérifier','Oui','Non'));
+
+  TEOPropertyUpdater.Create('UPDATE_CHECK_DATE', 'Equipement Vérifier', 'EQUIPEMENT', 'LAST_CHECK_DATE', 'DATE_END_INTERVENTION', 'VERIFIED');
+  LastHandledEntity.AddOperation(LastHandledEO);
+
+  // Entity : Article
+  Global_Singleton_EntityManager.RegisterEntity('Article', 'Article');
+  LastHandledEntity.GlyphName := 'Article';
+  LastHandledEntity.AddProperty(TEPText.Create('DESIGNATION', 'Designation'));
+  LastHandledEntity.AddProperty(TEPSubEntity.Create('PROVIDER', 'Fournisseur', 'Fournisseur', 'DESIGNATION', TRUE));
+  LastHandledEntity.AddProperty(TEPText.Create('AVAILABLE_AMOUNT', 'Quantité Disponible'));
+  LastHandledEP.DefaultValue := 0;
+  LastHandledEP.Editable := FALSE;
+
+  // Entity : Entrer de Stock
+  Global_Singleton_EntityManager.RegisterEntity('StockEntry', 'Entrée de Stock');
+  LastHandledEntity.GlyphName := 'StockEntry';
+  LastHandledEntity.AddProperty(TEPSubEntity.Create('PROVIDER', 'Fournisseur', 'Fournisseur', 'DESIGNATION', TRUE));
+  LastHandledEntity.AddProperty(TEPSubEntity.Create('ARTICLE', 'Article', 'Article', 'DESIGNATION', TRUE));
+  LastHandledEntity.AddProperty(TEPText.Create('AMOUNT', 'Quantité'));
+  LastHandledEntity.AddProperty(TEPText.Create('BUY_PRICE', 'Prix d''achat'));
+  LastHandledEntity.AddProperty(TEPBoolean.Create('STOCK', 'Stockage Effectuer','Oui','Non'));
+  LastHandledEntity.AddProperty(TEPBoolean.Create('LOCK_STOCK', 'Stocker et Vérouiller','Oui','Non'));
+
+  LastHandledEntity.AddOperation(TEOLockEdition.Create('LOCK_STOCK', 'Stocker et Vérouiller', 'LOCK_STOCK'));
+
+  TEOPropertyOperator.Create('STOCK', 'Effectuer le Stockage', 'ARTICLE', 'AVAILABLE_AMOUNT', 'AMOUNT', '+', 'STOCK');
+  LastHandledEntity.AddOperation(LastHandledEO);
+
+  // Entity : Sortie de Stock
+  Global_Singleton_EntityManager.RegisterEntity('StockExit', 'Sortie de Stock');
+  LastHandledEntity.GlyphName := 'StockExit';
+  LastHandledEntity.AddProperty(TEPSubEntity.Create('ARTICLE', 'Article', 'Article', 'DESIGNATION', TRUE));
+  LastHandledEntity.AddProperty(TEPText.Create('AMOUNT', 'Quantité'));
+  LastHandledEntity.AddProperty(TEPText.Create('SELL_PRICE', 'Prix de vente'));
+  LastHandledEntity.AddProperty(TEPBoolean.Create('STOCK', 'Déstockage Effectuer','Oui','Non'));
+  LastHandledEntity.AddProperty(TEPBoolean.Create('LOCK_STOCK', 'Déstocker et Vérouiller','Oui','Non'));
+
+  LastHandledEntity.AddOperation(TEOLockEdition.Create('LOCK_STOCK', 'Détocker et Vérouiller', 'LOCK_STOCK'));
+
+  TEOPropertyOperator.Create('DESTOCK', 'Effectuer le Déstockage', 'ARTICLE', 'AVAILABLE_AMOUNT', 'AMOUNT', '-', 'STOCK');
+  LastHandledEntity.AddOperation(LastHandledEO);
+
+  // Entity : Fournisseur
+  Global_Singleton_EntityManager.RegisterEntity('Fournisseur', 'Fournisseur');
+  LastHandledEntity.GlyphName := 'Provider';
+  LastHandledEntity.AddProperty(TEPText.Create('FAMILY_NAME', 'Nom'));
+  LastHandledEntity.AddProperty(TEPText.Create('FIRST_NAME', 'Prénom'));
+  LastHandledEntity.AddProperty(TEPSubEntity.Create('SOCIAL_RAISON', 'Raison Sociale', 'RaisonSociale', 'DESIGNATION', TRUE));
+  LastHandledEntity.AddProperty(TEPText.Create('DESIGNATION', 'Designation'));
+  LastHandledEntity.DisplayShortcut := FALSE;
+  LastHandledEntity.PredefinedList := TRUE;
+
+  // Entity : COB
+  Global_Singleton_EntityManager.RegisterEntity('COB', 'COB');
+  LastHandledEntity.GlyphName := 'COB';
+  LastHandledEntity.AddProperty(TEPText.Create('CODE', 'Code'));
+  LastHandledEntity.AddProperty(TEPText.Create('NAME', 'Designation'));
+  LastHandledEntity.DisplayShortcut := FALSE;
+  LastHandledEntity.PredefinedList := TRUE;
+
+  // Entity : Function
+  Global_Singleton_EntityManager.RegisterEntity('Function', 'Fonction');
+  LastHandledEntity.AddProperty(TEPText.Create('NAME', 'Designation'));
+  LastHandledEntity.DisplayShortcut := FALSE;
+  LastHandledEntity.PredefinedList := TRUE;
+
+  // Entity : Qualification
+  Global_Singleton_EntityManager.RegisterEntity('Qualification', 'Qualification');
+  LastHandledEntity.AddProperty(TEPText.Create('NAME', 'Designation'));
+  LastHandledEntity.DisplayShortcut := FALSE;
+  LastHandledEntity.PredefinedList := TRUE;
+
+  // Entity : Raison Sociale
+  Global_Singleton_EntityManager.RegisterEntity('RaisonSociale', 'Raison Sociale');
+  LastHandledEntity.AddProperty(TEPText.Create('DESIGNATION', 'Designation'));
+  LastHandledEntity.AddProperty(TEPText.Create('SHORT_DESIGNATION', 'Abbreviation'));
+  LastHandledEntity.DisplayShortcut := FALSE;
+  LastHandledEntity.PredefinedList := TRUE;
+
+  // Entity : Type d'intervention
+  Global_Singleton_EntityManager.RegisterEntity('TypeIntervention', 'Type d''intervention');
+  LastHandledEntity.AddProperty(TEPText.Create('DESIGNATION', 'Designation'));
+  LastHandledEntity.DisplayShortcut := FALSE;
+  LastHandledEntity.PredefinedList := TRUE;
+
+  // Display the main menu
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TForm1, Form1);
+  TMainMenuManager.Create(Form1); // Transform form 1 into wisp's main menu
+  Application.Run;
+
+end.
