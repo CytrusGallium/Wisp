@@ -1,0 +1,171 @@
+program Template;
+
+uses
+  Vcl.Forms,
+  Dialogs,
+  MainMenu in 'MainMenu.pas' {Form1} ,
+  WispEntity,
+  WispArrayTools,
+  WispSkin,
+  WispDbConnection,
+  WispQueryTools,
+  WispUser,
+  WispAccesManager,
+  WispLoginDialog,
+  WispEditBox,
+  WispDbStructureTools,
+  WispDistanceTools,
+  WispPanelUserInfo,
+  WispTimeTools,
+  WispStrTools,
+  WispPanelShortCuts,
+  WispEntityManager,
+  WispDatePicker,
+  WispEntityEditor,
+  WispEntityGrid,
+  WispViewTools,
+  WispPageControl,
+  WispMainMenuManager,
+  WispLookUpComboBox,
+  WispStyleManager,
+  WispStyleConstants,
+  WispCheckBox,
+  WispVisualComponent,
+  WispMathTools,
+  WispConsole,
+  WispHooks,
+  WispButton,
+  WispTimePicker,
+  WispPopupMenu,
+  WispPanelSearch,
+  WispPanelAds,
+  WispTemplate,
+  WispConstantManager,
+  WispReportManager,
+  WispDefaultValue;
+
+{$R *.res}
+
+begin
+  // Initialize the application
+  Application.Initialize;
+
+  // Initialize the constants controller, required to be initialized first
+  TConstantManager.Create;
+  // Global_Singleton_ConstantManager.CurrentLanguage := 'Arabic';
+//   Global_Singleton_ConstantManager.CurrentLanguage := 'French';
+  Global_Singleton_ConstantManager.CurrentLanguage := 'English';
+
+  // Constants
+  Global_Singleton_ConstantManager.AppTitle := '';
+  Global_Singleton_ConstantManager.AppSubTitle := '';
+  Global_Singleton_ConstantManager.AppVersion := '0.0.0.0';
+  Global_Singleton_ConstantManager.DbName := '';
+  Global_Singleton_ConstantManager.DbPort := 3306;
+  Global_Singleton_ConstantManager.DbUser := 'root';
+  Global_Singleton_ConstantManager.DbPass := '';
+
+  // Initialize other controllers
+  TDbConnection.Create;
+  TAccesManager.Create;
+  TReportManager.Create;
+  TEntityManager.Create;
+  TStyleManager.Create;
+
+  // Register bitmaps for icons
+  Global_Singleton_Style.RegisterBitmap('Personnal',
+    'Skin\Icons\Personnal.bmp');
+  Global_Singleton_Style.RegisterBitmap('Article', 'Skin\Icons\Article.bmp');
+  Global_Singleton_Style.RegisterBitmap('COB', 'Skin\Icons\COB.bmp');
+  Global_Singleton_Style.RegisterBitmap('StockEntry', 'Skin\Icons\Enter.bmp');
+  Global_Singleton_Style.RegisterBitmap('Intervention',
+    'Skin\Icons\Equipment.bmp');
+  Global_Singleton_Style.RegisterBitmap('StockExit', 'Skin\Icons\Exit.bmp');
+  Global_Singleton_Style.RegisterBitmap('Provider', 'Skin\Icons\Provider.bmp');
+  Global_Singleton_Style.RegisterBitmap('Engine', 'Skin\Icons\Engine.bmp');
+
+  // Entity : Repair Order
+  {
+
+  LastHandledEntity.AddProperty(TEPText.Create('CUSTOMER_FAMILY_NAME',
+    'Customer''s Family Name'));
+  LastHandledEntity.AddProperty(TEPText.Create('CUSTOMER_FIRST_NAME',
+    'Customer''s First Name'));
+  LastHandledEntity.AddProperty(TEPText.Create('CUSTOMER_PHONE_NUMBER',
+    'Customer''s Phone Number'));
+  LastHandledEntity.AddProperty(TEPSubEntity.Create('DEVICE_TYPE',
+    'Device Type', 'DeviceType', 'DESIGNATION', TRUE));
+  LastHandledEntity.AddProperty(TEPText.Create('DEVICE_REF',
+    'Device Reference'));
+
+  LastHandledEntity.AddProperty(TEPText.Create('DEVICE_SERIAL_NUMBER',
+    'Serial number / IMEI'));
+
+  LastHandledEntity.AddProperty(TEPText.Create('BUG', 'Panne'));
+
+  LastHandledEntity.AddProperty(TEPBoolean.Create('SHUT_OFF', 'Eteint',
+    'Oui', 'Non'));
+  LastHandledEntity.AddProperty(TEPBoolean.Create('DROPED_IN_WATER', 'H2O',
+    'Oui', 'Non'));
+
+  LastHandledEntity.AddProperty(TEPText.Create('APPROX_REPAIR_PRICE',
+    'Approx. repair price'));
+  LastHandledEntity.AddProperty(TEPSubEntity.Create('REPAIRER', 'Repairer',
+    'repairer', 'FIRST_NAME,FAMILY_NAME', TRUE));
+
+  // Entity : Device type
+  Global_Singleton_EntityManager.RegisterEntity('DeviceType', 'Device Type');
+  LastHandledEntity.AddProperty(TEPText.Create('DESIGNATION', 'Designation'));
+  LastHandledEntity.DisplayShortcut := FALSE;
+  LastHandledEntity.PredefinedList := TRUE;
+
+  {
+    // Entity : Personnel
+    Global_Singleton_EntityManager.RegisterEntity('Personnel', 'Personnel');
+    LastHandledEntity.GlyphName := 'Personnal';
+    LastHandledEntity.AddProperty(TEPText.Create('FAMILY_NAME', 'Nom'));
+    LastHandledEntity.AddProperty(TEPText.Create('FIRST_NAME', 'Prénom'));
+    LastHandledEntity.AddProperty(TEPDate.Create('DATE_OF_BIRTH', 'Date de Naissance'));
+    LastHandledEntity.AddProperty(TEPText.Create('BIRTH_PLACE', 'Lieu de Naissance'));
+    LastHandledEntity.AddProperty(TEPDate.Create('RECRUITING_DATE', 'Date de recrutement'));
+    LastHandledEntity.AddProperty(TEPSubEntity.Create('COB', 'COB', 'COB', 'CODE,NAME', TRUE));
+    LastHandledEntity.AddProperty(TEPSubEntity.Create('FUNCTION', 'Fonction', 'FUNCTION', 'NAME', TRUE));
+    LastHandledEntity.AddProperty(TEPSubEntity.Create('QUALIFICATION', 'Qualification', 'QUALIFICATION', 'NAME', TRUE));
+    LastHandledEntity.AddProperty(TEPText.Create('BLOOD_TYPE', 'Groupe senguin'));
+    LastHandledEntity.AddProperty(TEPText.Create('COUNTRY', 'Nationalité'));
+    LastHandledEntity.AddProperty(TEPText.Create('ADDRES', 'Adresse'));
+    LastHandledEntity.AddProperty(TEPBoolean.Create('CRUCIAL', 'Cruciale','Oui','Non'));
+   
+    LastHandledEntity.AddProperty(TEPText.Create('SEQUENCE_NUMBER',
+    'Sequence Number'));
+    LastHandledEntity.QuickSearchProperty := LastHandledEP;
+    LastHandledEP.DefaultValue := TWispDVEntityId.Create;
+    LastHandledEP.Editable := FALSE;
+
+    LastHandledEntity.AddProperty(TEPDate.Create('ENTRY_DATE', 'Entry date'));
+    LastHandledEP.DefaultValue := TWispDVCurrentDate.Create;
+    LastHandledEP.Editable := FALSE;
+
+    LastHandledEntity.AddProperty(TEPTime.Create('ENTRY_TIME', 'Entry Time'));
+    LastHandledEP.DefaultValue := TWispDVCurrentTime.Create;
+    LastHandledEP.Editable := FALSE;
+
+    LastHandledEntity.AddProperty(TEPText.Create('DOCUMENT', 'Document'));
+    TEPText(LastHandledEP).LocalFileSelector := TRUE;
+
+    LastHandledEntity.AddProperty(TEPText.Create('AUTO_CHECK_PERIOD', 'Préventif (Jours)'));
+    TEPText(LastHandledEP).SuffixLabel := 'Jours';
+
+   // LastHandledEntity.AddDecorator(TEDTimeAlert.Create('PREVENTIV_INTERVENTION_ALERT', 'LAST_CHECK_DATE', '', 'AUTO_CHECK_PERIOD', 'D', TRUE));
+   //LastHandledEntity.DisplayShortcut := FALSE;
+   //LastHandledEntity.PredefinedList := TRUE;
+
+  }
+
+  // Display the main menu
+  Application.MainFormOnTaskbar := TRUE;
+  Application.CreateForm(TForm1, Form1);
+  TMainMenuManager.Create(Form1); // Transform form 1 into wisp's main menu
+  Application.Run;
+
+end.
